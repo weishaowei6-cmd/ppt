@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>迷你四驱车结构拆解｜参赛级汇报演示</title>
+<style>
+:root{
+  --bg:#05070d; --ink:#f7fbff; --muted:#a8b5c9; --line:rgba(255,255,255,.14);
+  --cyan:#00e5ff; --blue:#4b7dff; --gold:#ffcb58; --red:#ff416d; --green:#7cffb2;
+  --panel:rgba(10,18,33,.66); --panel2:rgba(255,255,255,.075);
+  --shadow:0 24px 80px rgba(0,0,0,.42);
+}
+*{box-sizing:border-box} html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",Inter,Arial,sans-serif;overflow:hidden}
+body:before{content:"";position:fixed;inset:-20%;background:radial-gradient(circle at 75% 15%, rgba(0,229,255,.18), transparent 32%),radial-gradient(circle at 20% 80%, rgba(255,65,109,.15), transparent 30%),linear-gradient(135deg,#03050a,#071225 44%,#020306);z-index:-2}
+body:after{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);background-size:44px 44px;mask-image:linear-gradient(transparent,black 12%,black 85%,transparent);z-index:-1;opacity:.48}
+.deck{height:100vh;width:100vw;position:relative;perspective:1400px}
+.slide{position:absolute;inset:0;padding:5.2vh 5.6vw 4.8vh;display:grid;grid-template-rows:auto 1fr auto;opacity:0;transform:translateX(42px) scale(.985);transition:opacity .55s ease,transform .65s cubic-bezier(.2,.8,.2,1);pointer-events:none;overflow:hidden}
+.slide.active{opacity:1;transform:none;pointer-events:auto}
+.slide.prev{transform:translateX(-38px) scale(.985)}
+.kicker{font-size:14px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:750;margin-bottom:14px}
+h1{font-size:clamp(54px,6.5vw,96px);line-height:.95;margin:0;letter-spacing:-.06em;font-weight:850;text-shadow:0 0 35px rgba(0,229,255,.12)}
+h2{font-size:clamp(36px,4.4vw,68px);line-height:1;margin:0 0 18px;letter-spacing:-.045em;font-weight:830}
+h3{font-size:24px;margin:0 0 12px;letter-spacing:-.025em}.lead{font-size:clamp(20px,1.85vw,32px);line-height:1.38;color:#dce8f7;max-width:900px}.muted{color:var(--muted)}
+.topbar{position:fixed;top:18px;left:24px;right:24px;z-index:20;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:rgba(255,255,255,.62);pointer-events:none}.brand{display:flex;gap:10px;align-items:center}.brand-dot{width:11px;height:11px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--blue));box-shadow:0 0 20px var(--cyan)}.toolbar{display:flex;gap:8px;pointer-events:auto}.btn{border:1px solid var(--line);background:rgba(255,255,255,.07);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:13px;cursor:pointer;backdrop-filter:blur(14px)}.btn:hover{background:rgba(255,255,255,.14)}
+.progress{position:fixed;left:0;bottom:0;height:4px;background:linear-gradient(90deg,var(--cyan),var(--gold),var(--red));z-index:25;width:0%;transition:width .35s ease}.counter{position:fixed;right:28px;bottom:22px;color:rgba(255,255,255,.55);font-size:13px;z-index:25}.hint{position:fixed;left:28px;bottom:22px;color:rgba(255,255,255,.45);font-size:13px;z-index:25}
+.hero-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:3.5vw;align-items:center}.hero-img{width:100%;height:68vh;object-fit:cover;border-radius:34px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.16)}.glow-card{background:linear-gradient(180deg,rgba(255,255,255,.105),rgba(255,255,255,.04));border:1px solid var(--line);box-shadow:var(--shadow);border-radius:32px;padding:28px;backdrop-filter:blur(18px)}
+.pills{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}.pill{padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.08);font-size:15px;color:#d7e9ff}.accent{background:linear-gradient(135deg,var(--cyan),var(--blue));-webkit-background-clip:text;color:transparent}.yellow{color:var(--gold)}.red{color:var(--red)}.green{color:var(--green)}
+.content{align-self:center}.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:stretch}.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:28px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.25);backdrop-filter:blur(18px);position:relative;overflow:hidden}.card:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 100% 0,rgba(0,229,255,.13),transparent 35%);pointer-events:none}.card .num{font-size:13px;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:16px}.card p,.card li{font-size:18px;line-height:1.55;color:#d6e2f0;margin:0}.card ul{padding-left:18px;margin:10px 0 0}.big-number{font-size:58px;font-weight:850;letter-spacing:-.06em}.section-title{max-width:980px}.image-frame{position:relative;border-radius:30px;overflow:hidden;border:1px solid rgba(255,255,255,.14);box-shadow:var(--shadow);background:#0d1323}.image-frame img{width:100%;height:100%;display:block;object-fit:cover}.label{position:absolute;background:rgba(3,8,18,.82);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:10px 12px;font-size:14px;color:#eef7ff;backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.35)}.label b{color:var(--cyan)}.line{position:absolute;height:2px;background:linear-gradient(90deg,var(--cyan),transparent);transform-origin:left center}.small{font-size:14px;color:var(--muted);line-height:1.4}.caption{font-size:14px;color:rgba(255,255,255,.55);margin-top:10px}.split{display:grid;grid-template-columns:1.08fr .92fr;gap:28px;align-items:center}
+.system-map{position:relative;height:56vh;border-radius:34px;background:radial-gradient(circle at 50% 50%,rgba(0,229,255,.13),transparent 48%),rgba(255,255,255,.04);border:1px solid var(--line);overflow:hidden}.center-chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:210px;height:210px;border-radius:50%;display:grid;place-items:center;text-align:center;background:linear-gradient(145deg,rgba(0,229,255,.22),rgba(75,125,255,.11));border:1px solid rgba(0,229,255,.35);box-shadow:0 0 70px rgba(0,229,255,.18)}.orbit{position:absolute;width:260px}.orbit h3{font-size:21px}.o1{left:7%;top:12%}.o2{right:7%;top:12%}.o3{left:7%;bottom:12%}.o4{right:7%;bottom:12%}.connector{position:absolute;left:50%;top:50%;width:1px;height:1px}.connector:before{content:"";position:absolute;height:2px;width:320px;background:linear-gradient(90deg,rgba(0,229,255,.0),rgba(0,229,255,.48),rgba(0,229,255,.0));animation:pulse 2.8s infinite}.c1:before{transform:rotate(153deg);transform-origin:left}.c2:before{transform:rotate(27deg);transform-origin:left}.c3:before{transform:rotate(207deg);transform-origin:left}.c4:before{transform:rotate(-27deg);transform-origin:left}@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.svgbox{width:100%;height:100%;min-height:420px;border-radius:30px;background:rgba(255,255,255,.045);border:1px solid var(--line);padding:18px}.diagram-title{font-size:18px;font-weight:750;color:#fff;margin-bottom:10px}.flow-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--cyan);box-shadow:0 0 20px var(--cyan);animation:move 3s linear infinite}@keyframes move{0%{offset-distance:0%}100%{offset-distance:100%}}
+.table{width:100%;border-collapse:separate;border-spacing:0 12px}.table td,.table th{font-size:17px;text-align:left;padding:15px 18px;background:rgba(255,255,255,.065);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.table th{color:var(--cyan);font-weight:750}.table td:first-child,.table th:first-child{border-left:1px solid var(--line);border-radius:16px 0 0 16px}.table td:last-child,.table th:last-child{border-right:1px solid var(--line);border-radius:0 16px 16px 0}
+.timeline{display:grid;gap:16px}.step{display:grid;grid-template-columns:72px 1fr;gap:16px;align-items:start}.step .dot{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(0,229,255,.26),rgba(75,125,255,.12));border:1px solid rgba(0,229,255,.35);font-weight:850;color:#fff}.step h3{margin:2px 0 6px}.step p{font-size:17px;color:#d3deed;margin:0;line-height:1.45}
+.track{height:36vh;border-radius:32px;border:1px solid var(--line);background:radial-gradient(circle at 50% 45%,rgba(0,229,255,.18),transparent 35%),rgba(255,255,255,.04);position:relative;overflow:hidden}.track:before{content:"";position:absolute;inset:14%;border:18px solid rgba(255,255,255,.14);border-radius:90px}.track .car-dot{position:absolute;width:24px;height:14px;border-radius:12px;background:linear-gradient(90deg,var(--red),var(--gold));box-shadow:0 0 18px rgba(255,203,88,.7);left:18%;top:45%;animation:lap 4.5s linear infinite}@keyframes lap{0%{left:18%;top:45%;transform:rotate(0)}25%{left:76%;top:24%;transform:rotate(25deg)}50%{left:77%;top:66%;transform:rotate(160deg)}75%{left:20%;top:70%;transform:rotate(205deg)}100%{left:18%;top:45%;transform:rotate(360deg)}}
+.final{display:grid;place-items:center;text-align:center}.final h2{font-size:clamp(52px,6.6vw,96px)}.watermark{position:absolute;right:6vw;bottom:8vh;font-size:150px;font-weight:900;letter-spacing:-.08em;color:rgba(255,255,255,.035);line-height:.85;z-index:-1}.mini-note{position:absolute;right:5.6vw;top:5.2vh;color:rgba(255,255,255,.42);font-size:13px}
+@media print{html,body{overflow:visible;background:#05070d}.topbar,.toolbar,.progress,.counter,.hint{display:none}.deck{height:auto}.slide{position:relative;opacity:1;transform:none;page-break-after:always;width:100vw;height:56.25vw;max-height:100vh;padding:4.5vw 5.4vw;overflow:hidden}.slide:not(.active){display:grid}.btn{display:none}}
+@media (max-width:900px){.grid-2,.grid-3,.grid-4,.hero-grid,.split{grid-template-columns:1fr}.hero-img{height:42vh}.slide{overflow:auto;padding-top:60px}.hint,.counter{display:none}.system-map{height:720px}.orbit{width:auto;left:6%!important;right:6%!important}.o1{top:8%}.o2{top:26%}.o3{top:62%}.o4{top:80%}.center-chip{top:50%}.connector{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="brand"><span class="brand-dot"></span><span>Mini 4WD Engineering Deck · 参赛级汇报版</span></div><div class="toolbar"><button class="btn" onclick="prevSlide()">← 上一页</button><button class="btn" onclick="nextSlide()">下一页 →</button><button class="btn" onclick="toggleFull()">全屏</button><button class="btn" onclick="window.print()">导出PDF</button></div></div>
+<div class="progress" id="progress"></div><div class="hint">键盘 ← → / 空格翻页</div><div class="counter" id="counter"></div>
+<main class="deck" id="deck">
+
+<section class="slide active">
+  <div></div>
+  <div class="hero-grid content">
+    <div>
+      <div class="kicker">Toy · Engineering · Racing</div>
+      <h1>迷你四驱车<br><span class="accent">结构拆解</span></h1>
+      <p class="lead">从“两节5号电池”到四轮同步驱动：把童年玩具拆成一套可讲、可演示、可参赛的工程系统。</p>
+      <div class="pills"><span class="pill">结构爆炸图</span><span class="pill">动力传输</span><span class="pill">稳定性设计</span><span class="pill">改装策略</span><span class="pill">故障诊断</span></div>
+    </div>
+    <img class="hero-img" src="assets/hero.png" alt="mini 4wd studio hero">
+  </div>
+  <div class="small">定位：适合课堂汇报、科技节展示、童年玩具机械原理讲解。</div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">01 · Design Goal</div><h2 class="section-title">这不是“玩具介绍”，而是一次小型机械系统拆解</h2></header>
+  <div class="grid-4 content">
+    <div class="card"><div class="num">Module A</div><h3>骨架系统</h3><p>底盘决定零件安装位置、重心高度、抗扭强度，是整车的“承重平台”。</p></div>
+    <div class="card"><div class="num">Module B</div><h3>动力系统</h3><p>两节AA电池向130直流马达供电，把电能转成高速旋转。</p></div>
+    <div class="card"><div class="num">Module C</div><h3>传动系统</h3><p>齿轮组改变转速与扭矩，再通过轴把动力分配到前后轮。</p></div>
+    <div class="card"><div class="num">Module D</div><h3>稳定系统</h3><p>导轮、轮胎、配重和车壳空气动力共同解决“快而不飞”的问题。</p></div>
+  </div>
+  <footer class="caption">汇报核心：一辆四驱车 = 电路 + 马达 + 齿轮传动 + 车体稳定控制。</footer>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">02 · Object Recognition</div><h2>实物标注：这类车为什么叫“四驱车”？</h2></header>
+  <div class="split content">
+    <div class="image-frame" style="height:64vh"><img src="assets/reference_car.jpg" alt="user reference mini 4wd"><div class="label" style="left:7%;top:8%"><b>前导轮</b><br>贴赛道墙，防止出轨</div><div class="label" style="right:7%;top:12%"><b>尾翼/车壳</b><br>外观 + 下压力 + 导流</div><div class="label" style="left:11%;bottom:19%"><b>前后轮</b><br>四轮同步参与驱动</div><div class="label" style="right:10%;bottom:10%"><b>后导轮</b><br>过弯稳定核心</div></div>
+    <div class="timeline">
+      <div class="step"><div class="dot">1</div><div><h3>不是靠遥控转向</h3><p>迷你四驱车通常没有方向舵机，路线由赛道墙和导轮共同约束。</p></div></div>
+      <div class="step"><div class="dot">2</div><div><h3>四驱的关键在传动轴</h3><p>马达动力经过齿轮后同时送到前后轴，因此前后轮都能输出动力。</p></div></div>
+      <div class="step"><div class="dot">3</div><div><h3>比赛本质是调校</h3><p>同一辆车，换马达、齿轮、轮胎、导轮和配重，赛道表现会完全不同。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">03 · System Architecture</div><h2>整车系统架构：四个系统互相制约</h2></header>
+  <div class="system-map content">
+    <div class="connector c1"></div><div class="connector c2"></div><div class="connector c3"></div><div class="connector c4"></div>
+    <div class="center-chip"><div><div class="big-number">4WD</div><div class="small">Mini Four Wheel Drive</div></div></div>
+    <div class="card orbit o1"><h3>骨架系统</h3><p>底盘 / 车壳 / 螺丝孔位 / 轴承座</p></div>
+    <div class="card orbit o2"><h3>动力系统</h3><p>AA电池 / 开关 / 金属片 / 130马达</p></div>
+    <div class="card orbit o3"><h3>传动系统</h3><p>小齿 / 冠齿 / 传动轴 / 车轴 / 轮毂</p></div>
+    <div class="card orbit o4"><h3>稳定系统</h3><p>导轮 / 轮胎 / 配重 / 重心 / 空气动力</p></div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">04 · Exploded View</div><h2>爆炸拆解图：从上到下看每一层</h2></header>
+  <div class="split content">
+    <div class="image-frame" style="height:64vh;background:#eef2f7"><img src="assets/exploded.png" style="object-fit:contain" alt="exploded assembly"><div class="label" style="left:35%;top:8%"><b>车壳</b>：轻量化外观件</div><div class="label" style="left:44%;top:47%"><b>底盘</b>：所有模块的承载平台</div><div class="label" style="left:37%;bottom:14%"><b>齿轮/轴/轮</b>：传动链路</div></div>
+    <div class="grid-2" style="gap:14px">
+      <div class="card"><div class="num">Layer 1</div><h3>车壳层</h3><p>负责造型、保护、导流。轻则提速，稳则抗飞。</p></div>
+      <div class="card"><div class="num">Layer 2</div><h3>电源层</h3><p>两节AA电池串联，形成马达所需电压。</p></div>
+      <div class="card"><div class="num">Layer 3</div><h3>底盘层</h3><p>电池仓、马达仓、齿轮仓、车轴座集成在同一平台。</p></div>
+      <div class="card"><div class="num">Layer 4</div><h3>滚动层</h3><p>车轮负责抓地，导轮负责贴壁，二者共同决定轨迹。</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">05 · Power Chain</div><h2>动力链路：电池不是“直接推车”，而是驱动马达旋转</h2></header>
+  <div class="split content">
+    <div class="image-frame" style="height:62vh"><img src="assets/cutaway.png" alt="transparent cutaway drivetrain"><div class="label" style="left:7%;top:18%"><b>电能</b>：AA电池供电</div><div class="label" style="left:41%;top:23%"><b>马达</b>：电能→旋转</div><div class="label" style="right:8%;bottom:18%"><b>车轮</b>：旋转→前进</div></div>
+    <div>
+      <table class="table"><tr><th>环节</th><th>作用</th><th>汇报话术</th></tr><tr><td>电池</td><td>提供电压与电流</td><td>像“油箱+电泵”</td></tr><tr><td>马达</td><td>输出高速旋转</td><td>车的心脏</td></tr><tr><td>齿轮</td><td>调节速度/扭矩</td><td>车的变速箱</td></tr><tr><td>车轴</td><td>传递动力到轮子</td><td>车的传动轴</td></tr><tr><td>轮胎</td><td>把旋转变成抓地前进</td><td>最终落地执行</td></tr></table>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">06 · Motor Anatomy</div><h2>130直流马达：为什么一通电就转？</h2></header>
+  <div class="grid-2 content">
+    <div class="svgbox">
+      <svg viewBox="0 0 760 460" width="100%" height="100%" aria-label="motor cutaway diagram">
+        <defs><linearGradient id="g1" x1="0" x2="1"><stop stop-color="#00e5ff"/><stop offset="1" stop-color="#4b7dff"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+        <rect x="100" y="125" width="520" height="210" rx="38" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.35)" stroke-width="3"/>
+        <rect x="130" y="155" width="80" height="150" rx="18" fill="#152036" stroke="#00e5ff"/><rect x="510" y="155" width="80" height="150" rx="18" fill="#152036" stroke="#00e5ff"/>
+        <circle cx="360" cy="230" r="74" fill="rgba(255,203,88,.16)" stroke="#ffcb58" stroke-width="4"/>
+        <ellipse cx="360" cy="230" rx="120" ry="34" fill="none" stroke="url(#g1)" stroke-width="8" filter="url(#glow)"><animateTransform attributeName="transform" type="rotate" values="0 360 230;360 360 230" dur="2.6s" repeatCount="indefinite"/></ellipse>
+        <line x1="220" y1="230" x2="500" y2="230" stroke="#eaf6ff" stroke-width="12" stroke-linecap="round"/><circle cx="360" cy="230" r="18" fill="#fff"/>
+        <path d="M80 178 C35 178,35 282,80 282" fill="none" stroke="#ff416d" stroke-width="8"/><path d="M640 178 C690 178,690 282,640 282" fill="none" stroke="#7cffb2" stroke-width="8"/>
+        <text x="156" y="112" fill="#dce8f7" font-size="26" font-weight="700">固定磁铁</text><text x="318" y="92" fill="#dce8f7" font-size="26" font-weight="700">转子线圈</text><text x="515" y="112" fill="#dce8f7" font-size="26" font-weight="700">固定磁铁</text><text x="286" y="375" fill="#a8b5c9" font-size="22">电流通过线圈 → 产生磁场 → 与固定磁铁相互作用 → 连续旋转</text>
+      </svg>
+    </div>
+    <div class="timeline">
+      <div class="step"><div class="dot">①</div><div><h3>通电</h3><p>电池通过金属触片把电流送入马达线圈。</p></div></div>
+      <div class="step"><div class="dot">②</div><div><h3>成磁</h3><p>线圈变成电磁铁，与马达外壳内的永久磁铁产生吸引/排斥。</p></div></div>
+      <div class="step"><div class="dot">③</div><div><h3>换向</h3><p>换向器让电流方向周期性切换，保证转子持续朝同一方向旋转。</p></div></div>
+      <div class="step"><div class="dot">④</div><div><h3>输出</h3><p>马达轴带动小齿轮，把高速旋转送进齿轮系统。</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">07 · Gear Ratio</div><h2>齿轮比：为什么有的车起步猛，有的车直道快？</h2></header>
+  <div class="grid-2 content">
+    <div class="card"><h3>一句话讲清楚</h3><p class="lead" style="font-size:28px">齿轮像自行车变速：<span class="yellow">小齿带大齿</span>更有劲，<span class="accent">高速齿轮</span>更快但更容易失控。</p><div class="pills"><span class="pill">扭矩：起步/爬坡/过弯能力</span><span class="pill">转速：直线极速</span><span class="pill">摩擦：能量损耗</span></div></div>
+    <div class="svgbox">
+      <svg viewBox="0 0 760 470" width="100%" height="100%">
+        <defs><radialGradient id="gear" cx="50%" cy="50%"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#9edfff"/><stop offset="1" stop-color="#1972ff"/></radialGradient></defs>
+        <g transform="translate(180 230)"><circle r="70" fill="url(#gear)" stroke="#c7f8ff" stroke-width="5"/><circle r="22" fill="#071225"/><text x="-52" y="120" fill="#dce8f7" font-size="24">马达小齿</text><animateTransform attributeName="transform" additive="sum" type="rotate" values="0;360" dur="2.2s" repeatCount="indefinite"/></g>
+        <g transform="translate(420 230)"><circle r="118" fill="rgba(255,203,88,.32)" stroke="#ffcb58" stroke-width="6"/><circle r="30" fill="#071225"/><text x="-60" y="164" fill="#dce8f7" font-size="24">大冠齿</text><animateTransform attributeName="transform" additive="sum" type="rotate" values="360;0" dur="4.2s" repeatCount="indefinite"/></g>
+        <path d="M255 230 L302 230" stroke="#00e5ff" stroke-width="10" stroke-linecap="round"/><text x="130" y="70" fill="#00e5ff" font-size="28" font-weight="700">高速输入</text><text x="340" y="70" fill="#ffcb58" font-size="28" font-weight="700">减速增扭输出</text><text x="85" y="410" fill="#a8b5c9" font-size="22">齿轮比越大：轮上扭矩更强，但极速下降；齿轮比越小：极速更高，但更挑赛道。</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">08 · Stability Control</div><h2>跑得快不是本事，快且不飞才是调校能力</h2></header>
+  <div class="grid-3 content">
+    <div class="card"><div class="num">Roller</div><h3>导轮</h3><p>过弯时与赛道墙接触，把撞击摩擦变成滚动摩擦。导轮位置越合理，越不容易弹飞。</p></div>
+    <div class="card"><div class="num">Center of Gravity</div><h3>重心</h3><p>重心越高，过坡和转弯越容易翻。配重的本质是把车压稳，而不是盲目加重。</p></div>
+    <div class="card"><div class="num">Tire</div><h3>轮胎</h3><p>硬胎阻力小、直线快；软胎抓地强、过弯稳；海绵胎轻但耐久和抓地要看赛道。</p></div>
+  </div>
+  <div class="track"><div class="car-dot"></div></div>
+  <footer class="caption">展示语：四驱车调校的矛盾，是速度、抓地、稳定性三者之间的平衡。</footer>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">09 · Tuning Strategy</div><h2>改装不是越贵越强，而是按赛道反推配置</h2></header>
+  <div class="content">
+    <table class="table"><tr><th>赛道类型</th><th>目标</th><th>推荐方向</th><th>风险</th></tr><tr><td>长直道</td><td>最高速度</td><td>高速马达 + 小齿比 + 硬胎 + 低阻轴承</td><td>过弯飞车、刹车不够</td></tr><tr><td>连续弯道</td><td>稳定过弯</td><td>大导轮 + 合理配重 + 中速齿轮 + 抓地轮胎</td><td>直线速度损失</td></tr><tr><td>坡道/跳台</td><td>落地不翻</td><td>前后配重 + 制动海绵 + 降低重心</td><td>车身变重、耗电快</td></tr><tr><td>综合赛道</td><td>速度与稳定平衡</td><td>中高速马达 + 中等齿比 + 前后导轮微调</td><td>没有单项极致优势</td></tr></table>
+  </div>
+  <footer class="caption">参赛答辩点：改装思路要从“零件堆叠”升级为“赛道工况匹配”。</footer>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">10 · Failure Diagnosis</div><h2>常见问题诊断：看到现象，要能反推结构原因</h2></header>
+  <div class="grid-2 content">
+    <div class="card"><h3><span class="red">飞车</span>：速度超过稳定边界</h3><ul><li>导轮位置太高或直径不合适</li><li>前后配重不平衡，重心偏高</li><li>马达太猛但制动不足</li></ul></div>
+    <div class="card"><h3><span class="yellow">速度慢</span>：能量损失过大</h3><ul><li>齿轮啮合太紧，摩擦大</li><li>轴承/车轴偏磨</li><li>电池电量低或内阻大</li></ul></div>
+    <div class="card"><h3><span class="green">打滑</span>：轮胎抓地不足</h3><ul><li>轮胎材质不适合赛道</li><li>后轮压力不足</li><li>起步扭矩过大</li></ul></div>
+    <div class="card"><h3><span class="accent">跑偏</span>：左右阻力不对称</h3><ul><li>车轴弯曲或轮毂安装不正</li><li>左右导轮高度不同</li><li>底盘轻微变形</li></ul></div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">11 · Presentation Script</div><h2>一分钟汇报话术：让观众马上听懂</h2></header>
+  <div class="content glow-card">
+    <p class="lead" style="max-width:1100px;font-size:30px">“这辆车看起来只是儿童玩具，但它其实包含完整的机械工程链路：电池供电，马达把电能变成旋转，齿轮负责调速增扭，传动轴把动力送到前后轮，导轮和轮胎负责稳定。它的核心不是简单跑得快，而是如何在不同赛道里，在速度、抓地力和稳定性之间做平衡。这也是它能成为很多人机械启蒙玩具的原因。”</p>
+  </div>
+  <div class="grid-3"><div class="card"><h3>讲结构</h3><p>从系统架构切入，不陷入零件流水账。</p></div><div class="card"><h3>讲原理</h3><p>围绕能量转换、传动与稳定控制展开。</p></div><div class="card"><h3>讲调校</h3><p>把改装解释成工程决策，而不是堆配件。</p></div></div>
+</section>
+
+<section class="slide final">
+  <div class="watermark">4WD</div>
+  <div>
+    <div class="kicker">Conclusion</div>
+    <h2>一个小玩具，藏着一套完整的工程世界</h2>
+    <p class="lead" style="margin:auto;max-width:940px">迷你四驱车的价值，不只是童年回忆，而是用最直观的方式让人理解：动力、传动、摩擦、重心、空气动力与系统调校。</p>
+    <div class="pills" style="justify-content:center"><span class="pill">可展示</span><span class="pill">可答辩</span><span class="pill">可互动</span><span class="pill">可部署 GitHub Pages</span></div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="kicker">Appendix · GitHub Pages</div><h2>部署方式：像他们一样放到 GitHub 访问</h2></header>
+  <div class="grid-2 content">
+    <div class="card"><h3>最简单的方式</h3><ul><li>把整个文件夹上传到 GitHub 仓库</li><li>仓库根目录保留 <b>index.html</b> 和 <b>assets</b> 文件夹</li><li>Settings → Pages → Deploy from branch → main/root</li><li>等待 1-2 分钟，GitHub 会生成网页链接</li></ul></div>
+    <div class="card"><h3>汇报使用方式</h3><ul><li>打开 index.html 就能直接演示</li><li>按 F11 或点击“全屏”进入展示</li><li>按左右键/空格翻页</li><li>点击“导出PDF”可打印成PDF</li></ul></div>
+  </div>
+</section>
+
+</main>
+<script>
+const slides=[...document.querySelectorAll('.slide')];let i=0;function show(n){slides[i].classList.remove('active');slides[i].classList.add('prev');i=(n+slides.length)%slides.length;slides.forEach((s,idx)=>{if(idx!==i)s.classList.remove('active');if(idx!==i-1)s.classList.remove('prev')});slides[i].classList.add('active');document.getElementById('progress').style.width=((i+1)/slides.length*100)+'%';document.getElementById('counter').textContent=(i+1).toString().padStart(2,'0')+' / '+slides.length.toString().padStart(2,'0');location.hash='slide-'+(i+1)}function nextSlide(){show(i+1)}function prevSlide(){show(i-1)}function toggleFull(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen()}document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();nextSlide()} if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prevSlide()} if(e.key==='Home')show(0); if(e.key==='End')show(slides.length-1)});const m=location.hash.match(/slide-(\d+)/);if(m)show(parseInt(m[1])-1);else show(0);
+</script>
+</body>
+</html>
